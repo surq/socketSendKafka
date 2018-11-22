@@ -15,7 +15,7 @@ class SocketClient(client: Socket) extends Runnable {
     val response_msg = SocketServer.properties.getProperty("http.response.message", "").trim
     val reader = new BufferedReader(new InputStreamReader(client.getInputStream))
     val writer = new PrintStream(client.getOutputStream(), true)
-    // 只取第一行，[GET /1111111111111111?user=123&types=aa HTTP/1.1]
+    // 只取第一行，[GET /topic?user=123&types=aa HTTP/1.1]
     val first_line = reader.readLine()
     val resource = (first_line.substring(first_line.indexOf('/') + 1, first_line.lastIndexOf('/') - 5)).trim
     // 根据 HTTP 协议, 空行将结束头信息所以后面要加“\n”表示结束
@@ -38,7 +38,7 @@ class SocketClient(client: Socket) extends Runnable {
     if (index > 0) {
       val topic = resource.substring(0, index)
       val msg = resource.substring(index + 1)
-      SocketServer.kaFkaMesgQueue.offer((topic, msg))
+      SocketServer.mesgQueue.offer((topic, msg))
     }
   }
 }

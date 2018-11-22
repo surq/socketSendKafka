@@ -7,6 +7,7 @@ test_kafka：kafka集群已有的topic。
 2、关于config/config.properties文件：
 socket.server.port=必填项目
 kafka.brokers.list=必填项目
+kafka.producer.number=非必填项目，默认值10 producer个数
 kafka.message.split.size=非必填项目，默认值：100条 （kafka批发送数据的限制）
-kafka.message.split.time=非必填项目，默认值：1秒（kafka批发送数据的限制）
+kafka.message.split.time=非必填项目，默认值：10秒（kafka批发送数据的限制）
 http.response.message=非必填项目

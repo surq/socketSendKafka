@@ -1,7 +1,6 @@
 package com.moxiu.util
 
 import java.io.FileInputStream
-//import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.Properties
@@ -10,17 +9,21 @@ import java.util.concurrent.LinkedBlockingQueue
 
 object SocketServer {
   val socketQueue = new LinkedBlockingQueue[Socket]()
-  val kaFkaMesgQueue = new LinkedBlockingQueue[(String, String)]()
+  val mesgQueue = new LinkedBlockingQueue[(String, String)]()
+  val mesgPackageQueue = new LinkedBlockingQueue[List[(String, String)]]
   val executorsPool = Executors.newCachedThreadPool()
   // 用户配置属性文件
   val properties = loadProperties
-
+  //  val ss  = KafkaProducer
   def main(args: Array[String]): Unit = {
     val serverPort = properties.getProperty("socket.server.port").trim.toInt
-    // 启动socket客户端分发线程--》向kaFkaMesgQueue注入msg
+    val producerNum = properties.getProperty(" kafka.producer.number", "10").trim.toInt
+    // 启动socket客户端分发线程--》向mesgQueue注入msg
     executorsPool.submit(new SocketDispatcher)
-    // 启动kafka消息分隔包线程
+    // 启动kafka消息分隔包线程 --》mesgQueue分划成数据包载入mesgPackageQueue
     executorsPool.submit(new MsgDispatcherTasker)
+    // 启动producers线程 从mesgPackageQueue中获取数据包发送
+    for (index <- 0 until producerNum) executorsPool.submit(new SentMessageTasker)
 
     //配置文件获取
     val serverSocket = new ServerSocket(serverPort)
@@ -56,7 +59,9 @@ object SocketServer {
     // 默认配置文件：/../config/config.properties
     val propertiesFile = jarpath + "/../config/config.properties"
     val properties = new Properties
-    properties.load(new FileInputStream(propertiesFile))
+        properties.load(new FileInputStream(propertiesFile))
+        // TODO
+//    properties.load(new FileInputStream("/moxiu/workspace/socketSendKafka/config/config.properties"))
     properties
   }
 }

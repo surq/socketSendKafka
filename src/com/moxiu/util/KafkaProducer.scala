@@ -13,7 +13,6 @@ class KafkaProducer {
    * kafa 发送message
    */
   def kafkaSend(topic: String, msg: String): Unit = try {
-    Console println "kafkaSend:"+msg
     getProducer.send(new KeyedMessage[String, String](topic, msg.hashCode.toString, msg))
   } catch {
     case e: Exception => e.printStackTrace()
@@ -24,8 +23,6 @@ class KafkaProducer {
    * msgList: List[(topic, message)]
    */
   def kafkaSendList(msgList: List[(String, String)]): Unit = {
-    // TODO
-        Console println "kafkaSendList:"+msgList.size
     val messageList = ArrayBuffer[KeyedMessage[String, String]]()
     // topic ,key,message
     msgList.map(msg => messageList += new KeyedMessage[String, String](msg._1, msg._2.hashCode.toString, msg._2))

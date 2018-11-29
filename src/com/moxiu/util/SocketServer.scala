@@ -6,6 +6,7 @@ import java.net.Socket
 import java.util.Properties
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.io.File
 
 object SocketServer {
   val socketQueue = new LinkedBlockingQueue[Socket]()
@@ -13,7 +14,7 @@ object SocketServer {
   val mesgPackageQueue = new LinkedBlockingQueue[List[(String, String)]]
   val executorsPool = Executors.newCachedThreadPool()
   // 用户配置属性文件
-  val properties = loadProperties
+  val properties = loadProperties()
   //  val ss  = KafkaProducer
   def main(args: Array[String]): Unit = {
     val serverPort = properties.getProperty("socket.server.port").trim.toInt
@@ -50,18 +51,20 @@ object SocketServer {
   }
 
   /**
-   * 加载属性配置文件
+   * 指定config/文件夹下的配置文件名，
+   * 默认会加载config下的所有.properties的文件
    */
-  def loadProperties = {
+  def loadProperties(fileName: String = "*.properties") = {
     val fileseparator = System.getProperty("file.separator")
     val jarName = this.getClass.getProtectionDomain.getCodeSource.getLocation.getPath
+    val properties = new Properties
     val jarpath = jarName.substring(0, jarName.lastIndexOf(fileseparator))
     // 默认配置文件：/../config/config.properties
-    val propertiesFile = jarpath + "/../config/config.properties"
-    val properties = new Properties
-        properties.load(new FileInputStream(propertiesFile))
-        // TODO
-//    properties.load(new FileInputStream("/moxiu/workspace/socketSendKafka/config/config.properties"))
+    val confPath = jarpath + "/../config/"
+    // TODO  本机测试用
+    //    val confPath = "/moxiu/workspace/socketSendKafka/config/"
+    if (fileName == "*.properties") new File(confPath).listFiles.foreach(f => properties.load(new FileInputStream(f.getAbsolutePath)))
+    else properties.load(new FileInputStream(confPath + fileName))
     properties
   }
 }
